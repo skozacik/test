@@ -41,6 +41,8 @@ class join {
     typedef typename dataset1_decay::iterator       dataset1_iter;
     typedef typename dataset2_decay::iterator       dataset2_iter;
 public:
+    typedef typename dataset1_decay::sample         sample;
+
     enum { arity = dataset1_decay::arity };
 
     struct iterator {
@@ -52,7 +54,7 @@ public:
         {}
 
         // forward iterator interface
-        decltype(auto)      operator*() const   { return m_first_size > 0 ? *m_it1 : *m_it2; }
+        sample const&       operator*() const   { return m_first_size > 0 ? *m_it1 : *m_it2; }
         void                operator++()        { if( m_first_size > 0 ) { --m_first_size; ++m_it1; } else ++m_it2; }
 
     private:
