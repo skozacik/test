@@ -28,3 +28,9 @@ const std::vector< std::tuple<int, int>> values = {
 BOOST_DATA_TEST_CASE( test1, boost::unit_test::data::make( values ), var1, var2 ) {
         std::cout << var1 << ", " << var2 << "\n";
 }
+
+//main.cpp
+namespace bd = boost::unit_test::data;
+
+BOOST_DATA_TEST_CASE(testname, (bd::make(1) * bd::make(2)) + (bd::make(3) * bd::make(4)), arg1, arg2)
+{}

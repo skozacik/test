@@ -78,6 +78,8 @@ public:
             }
         }
 
+
+
     private:
         // Data members
         dataset1_iter   m_iter1;
@@ -88,6 +90,7 @@ public:
 
 public:
     enum { arity = boost::decay<DataSet1>::type::arity + boost::decay<DataSet2>::type::arity };
+    typedef typename iterator::iterator_sample sample;
 
     //! Constructor
     grid( DataSet1&& ds1, DataSet2&& ds2 )
