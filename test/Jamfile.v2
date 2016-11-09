@@ -156,6 +156,8 @@ test-suite "writing-test-ts"
   [ boost.test-self-test run : writing-test-ts : test-dataset-over-tuples  : : : : : : $(requirements_datasets) ]
   [ boost.test-self-test run : writing-test-ts : nullptr-support-test : : : : : : [ requires cxx11_nullptr ] ]
   [ boost.test-self-test run : writing-test-ts : user-defined-types-logging-customization-points ]
+  [ boost.test-self-test run : writing-test-ts : test-macro-global-fixture ]
+  [ boost.test-self-test run-fail : writing-test-ts : test-macro-global-fixture-assertion ]
 ;
 
 #_________________________________________________________________________________________________#
