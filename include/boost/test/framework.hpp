@@ -231,6 +231,8 @@ BOOST_TEST_DECL void                assertion_result( unit_test::assertion_resul
 BOOST_TEST_DECL void                exception_caught( execution_exception const& );
 /// Reports aborted test unit to all test observers
 BOOST_TEST_DECL void                test_unit_aborted( test_unit const& );
+/// Reports aborted test module to all test observers
+BOOST_TEST_DECL void                test_aborted( );
 /// @}
 
 namespace impl {

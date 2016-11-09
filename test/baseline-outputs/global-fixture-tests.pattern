@@ -1,0 +1,8 @@
+* message-fixture  *******************************************************************
+Running 1 test case...
+
+* exception-fixture  *******************************************************************
+setup error: std::runtime_error: Something got wrong
+* message-fixture  *******************************************************************
+Running 1 test case...
+

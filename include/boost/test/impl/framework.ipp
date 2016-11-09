@@ -1415,7 +1415,7 @@ run( test_unit_id id, bool continue_test )
     bool    was_in_progress     = framework::test_in_progress();
     bool    call_start_finish   = !continue_test || !was_in_progress;
 
-    impl::s_frk_state().m_test_in_progress = true;
+    impl::s_frk_state().m_test_in_progress = !call_start_finish;
 
     if( call_start_finish ) {
         BOOST_TEST_FOREACH( test_observer*, to, impl::s_frk_state().m_observers ) {
@@ -1427,6 +1427,8 @@ run( test_unit_id id, bool continue_test )
             }
         }
     }
+
+    impl::s_frk_state().m_test_in_progress = true;
 
     unsigned seed = runtime_config::get<unsigned>( runtime_config::btrt_random_seed );
     switch( seed ) {
@@ -1440,6 +1442,8 @@ run( test_unit_id id, bool continue_test )
     }
 
     impl::s_frk_state().execute_test_tree( id );
+
+    impl::s_frk_state().m_test_in_progress = !call_start_finish;
 
     if( call_start_finish ) {
         BOOST_TEST_REVERSE_FOREACH( test_observer*, to, impl::s_frk_state().m_observers )
@@ -1495,6 +1499,18 @@ test_unit_aborted( test_unit const& tu )
     BOOST_TEST_FOREACH( test_observer*, to, impl::s_frk_state().m_observers )
         to->test_unit_aborted( tu );
 }
+
+// ************************************************************************** //
+// **************               test_aborted                   ************** //
+// ************************************************************************** //
+
+void
+test_aborted( )
+{
+    BOOST_TEST_FOREACH( test_observer*, to, impl::s_frk_state().m_observers )
+        to->test_aborted( );
+}
+
 
 //____________________________________________________________________________//
 

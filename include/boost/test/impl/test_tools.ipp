@@ -310,8 +310,10 @@ report_assertion( assertion_result const&   ar,
 {
     using namespace unit_test;
 
-    BOOST_TEST_I_ASSRT( framework::current_test_case_id() != INV_TEST_UNIT_ID,
-                        std::runtime_error( "Can't use testing tools outside of test case implementation." ) );
+    // raising an exception here may result in raising an exception in a destructor of a global fixture
+    // which will abort the process
+    //BOOST_TEST_I_ASSRT( framework::current_test_case_id() != INV_TEST_UNIT_ID,
+    //                    std::runtime_error( "Can't use testing tools outside of test case implementation." ) );
 
     if( !!ar )
         tl = PASS;
@@ -370,9 +372,14 @@ report_assertion( assertion_result const&   ar,
     case REQUIRE:
         framework::assertion_result( AR_FAILED );
 
-        framework::test_unit_aborted( framework::current_test_case() );
-
-        BOOST_TEST_I_THROW( execution_aborted() );
+        if( framework::test_in_progress() ) {
+            framework::test_unit_aborted( framework::current_test_case() );
+            BOOST_TEST_I_THROW( execution_aborted() );
+        }
+        else {
+            // in case no test is in progress, we do not throw anything
+            framework::test_aborted();
+        }
     }
 
     return true;

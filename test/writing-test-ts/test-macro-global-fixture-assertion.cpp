@@ -7,7 +7,7 @@
 
 // checks issue https://svn.boost.org/trac/boost/ticket/5563
 
-#define BOOST_TEST_MODULE test_macro_in_global_fixture
+#define BOOST_TEST_MODULE test_macro_in_global_fixture_with_ctor_assert
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 

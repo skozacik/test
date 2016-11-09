@@ -48,7 +48,7 @@ struct global_fixture_impl : public global_fixture {
     // test observer interface
     virtual void    test_start( counter_t ) { m_fixture = new F; }
     virtual void    test_finish()           { delete m_fixture; m_fixture = 0; }
-    virtual void    test_aborted()          { delete m_fixture; m_fixture = 0; }
+    virtual void    test_aborted()          { /* delete m_fixture; m_fixture = 0; */ }
 
 private:
     // Data members
