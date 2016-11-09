@@ -2,7 +2,14 @@
 Running 1 test case...
 
 * exception-fixture  *******************************************************************
-setup error: std::runtime_error: Something got wrong
-* message-fixture  *******************************************************************
+setup error: std::runtime_error: exception in ctor
+* assertion-fixture  *******************************************************************
+writing-test-ts/test-macro-global-fixture-failure.cpp(46): fatal error: in "Test setup": failure in ctor
+Running 1 test case...
+
+* message-dtor-fixture  *******************************************************************
+Running 1 test case...
+
+* assertion-dtor-fixture  *******************************************************************
 Running 1 test case...
 
