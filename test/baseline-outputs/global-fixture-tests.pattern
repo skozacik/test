@@ -4,7 +4,7 @@ Running 1 test case...
 * exception-fixture  *******************************************************************
 setup error: std::runtime_error: exception in ctor
 * assertion-fixture  *******************************************************************
-writing-test-ts/test-macro-global-fixture-failure.cpp(46): fatal error: in "Test setup": failure in ctor
+writing-test-ts/test-macro-global-fixture-failure.cpp(45): fatal error: in "Test setup": failure in ctor
 Running 1 test case...
 
 * message-dtor-fixture  *******************************************************************
@@ -12,4 +12,5 @@ Running 1 test case...
 
 * assertion-dtor-fixture  *******************************************************************
 Running 1 test case...
+writing-test-ts/test-macro-global-fixture-failure.cpp(63): fatal error: in "Test setup": failure in dtor
 

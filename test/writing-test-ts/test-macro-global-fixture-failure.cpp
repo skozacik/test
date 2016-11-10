@@ -7,6 +7,9 @@
 
 // checks issue https://svn.boost.org/trac/boost/ticket/5563
 
+// we need the included version to be able to access the current framework state
+// through boost::unit_test::framework::impl::s_frk_state()
+
 #define BOOST_TEST_MODULE test_macro_in_global_fixture
 #include <boost/test/included/unit_test.hpp>
 #include <iostream>
@@ -14,13 +17,9 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/test/framework.hpp>
 #include <boost/test/unit_test_parameters.hpp>
-#include <boost/test/utils/nullstream.hpp>
-typedef boost::onullstream onullstream_type;
-#include <boost/test/utils/algorithm.hpp>
 
 using boost::test_tools::output_test_stream;
 using namespace boost::unit_test;
-namespace utf = boost::unit_test;
 
 
 struct GlobalFixture {
@@ -61,7 +60,7 @@ struct GlobalFixture {
 
         switch(behaviour) {
         case be_assert_dtor:
-            //BOOST_FAIL("failure in dtor"); // this crashes because it raises an uncaught exception in the dtor
+            BOOST_FAIL("failure in dtor"); // this crashes because it raises an uncaught exception in the dtor
             break;
 
         case be_message_dtor:
@@ -86,11 +85,11 @@ void simple_check()
 
 struct guard_reset_tu_id {
     guard_reset_tu_id() {
-        m_tu_id = boost::unit_test::framework::impl::s_frk_state().m_curr_test_case;
-        boost::unit_test::framework::impl::s_frk_state().m_curr_test_case = INV_TEST_UNIT_ID;
+        m_tu_id = framework::impl::s_frk_state().m_curr_test_case;
+        framework::impl::s_frk_state().m_curr_test_case = INV_TEST_UNIT_ID;
     }
     ~guard_reset_tu_id() {
-        boost::unit_test::framework::impl::s_frk_state().m_curr_test_case = m_tu_id;
+        framework::impl::s_frk_state().m_curr_test_case = m_tu_id;
     }
 
 private:
@@ -100,8 +99,8 @@ private:
 void check( output_test_stream& output, std::string global_fixture_behaviour, test_suite* ts)
 {
     {
-        boost::unit_test::unit_test_log.set_stream( output );
-        boost::unit_test::unit_test_log.set_threshold_level( log_all_errors );
+        unit_test_log.set_stream( output );
+        unit_test_log.set_threshold_level( log_all_errors );
 
         guard_reset_tu_id tu_guard;
         ts->p_default_status.value = test_unit::RS_ENABLED;
@@ -113,14 +112,14 @@ void check( output_test_stream& output, std::string global_fixture_behaviour, te
         {
             framework::run( ts->p_id, false ); // do not continue the test tree to have the test_log_start/end
         }
-        catch( boost::unit_test::framework::setup_error &e) {
+        catch( framework::setup_error &e) {
             output << "setup error: " << e.what();
         }
 
         output << std::endl;
 
-        boost::unit_test::unit_test_log.set_format(OF_CLF);
-        boost::unit_test::unit_test_log.set_stream(std::cout);
+        unit_test_log.set_format(OF_CLF);
+        unit_test_log.set_stream(std::cout);
 
     }
     // guard should end here
@@ -130,8 +129,8 @@ void check( output_test_stream& output, std::string global_fixture_behaviour, te
 struct guard {
     ~guard()
     {
-        boost::unit_test::unit_test_log.set_format( runtime_config::get<output_format>( runtime_config::LOG_FORMAT ) );
-        boost::unit_test::unit_test_log.set_stream( std::cout );
+        unit_test_log.set_format( runtime_config::get<output_format>( runtime_config::LOG_FORMAT ) );
+        unit_test_log.set_stream( std::cout );
         GlobalFixture::behaviour = GlobalFixture::be_disabled;
     }
 };
@@ -161,7 +160,6 @@ BOOST_AUTO_TEST_CASE( fixture_check )
 
     GlobalFixture::behaviour = GlobalFixture::be_assert;
     check( test_output, "assertion", ts_0 );
-
 
     GlobalFixture::behaviour = GlobalFixture::be_message_dtor;
     check( test_output, "message-dtor", ts_0 );
