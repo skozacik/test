@@ -39,14 +39,14 @@ struct GlobalFixture {
         switch(behaviour) {
 
         case be_throw:
-            throw std::runtime_error("exception in ctor");
+            throw std::runtime_error("[FIXTURE] exception in ctor");
 
         case be_assert:
-            BOOST_FAIL("failure in ctor");
+            BOOST_FAIL("[FIXTURE] failure in ctor");
             break;
 
         case be_message:
-            BOOST_TEST_MESSAGE("message in ctor");
+            BOOST_TEST_MESSAGE("[FIXTURE] message in ctor");
             break;
 
         case be_disabled:
@@ -60,11 +60,11 @@ struct GlobalFixture {
 
         switch(behaviour) {
         case be_assert_dtor:
-            BOOST_FAIL("failure in dtor"); // this crashes because it raises an uncaught exception in the dtor
+            BOOST_FAIL("[FIXTURE] failure in dtor"); // this crashes because it raises an uncaught exception in the dtor
             break;
 
         case be_message_dtor:
-            BOOST_TEST_MESSAGE("message in dtor");
+            BOOST_TEST_MESSAGE("[FIXTURE] message in dtor");
             break;
 
         default:
@@ -78,18 +78,26 @@ GlobalFixture::ebehaviour GlobalFixture::behaviour = GlobalFixture::be_disabled;
 
 BOOST_GLOBAL_FIXTURE( GlobalFixture );
 
+int nb_simple_checks_executed = 0;
 void simple_check()
 {
+    BOOST_TEST_MESSAGE("Executing the test case with current execution count " << nb_simple_checks_executed);
+    nb_simple_checks_executed ++;
     BOOST_TEST( true );
 }
 
 struct guard_reset_tu_id {
-    guard_reset_tu_id() {
+    guard_reset_tu_id(output_test_stream &output_stream, output_format format = OF_CLF) {
         m_tu_id = framework::impl::s_frk_state().m_curr_test_case;
         framework::impl::s_frk_state().m_curr_test_case = INV_TEST_UNIT_ID;
+        unit_test_log.set_format( OF_CLF );
+        unit_test_log.set_threshold_level( log_messages );
+        unit_test_log.set_stream( output_stream );
     }
     ~guard_reset_tu_id() {
         framework::impl::s_frk_state().m_curr_test_case = m_tu_id;
+        unit_test_log.set_format( OF_CLF );
+        unit_test_log.set_stream( std::cout ); // important for the next check on the output pattern
     }
 
 private:
@@ -99,30 +107,24 @@ private:
 void check( output_test_stream& output, std::string global_fixture_behaviour, test_suite* ts)
 {
     {
-        unit_test_log.set_stream( output );
-        unit_test_log.set_threshold_level( log_all_errors );
-
-        guard_reset_tu_id tu_guard;
+        guard_reset_tu_id tu_guard(output);
         ts->p_default_status.value = test_unit::RS_ENABLED;
 
-        output << "* " << global_fixture_behaviour << "-fixture  *******************************************************************";
+        output << "\n\n* " << global_fixture_behaviour << "-fixture  *******************************************************************";
         output << std::endl;
         framework::finalize_setup_phase( ts->p_id );
-        try
-        {
+        try {
             framework::run( ts->p_id, false ); // do not continue the test tree to have the test_log_start/end
         }
         catch( framework::setup_error &e) {
-            output << "setup error: " << e.what();
+            output << "[TEST] setup error: " << e.what();
         }
 
         output << std::endl;
 
-        unit_test_log.set_format(OF_CLF);
-        unit_test_log.set_stream(std::cout);
-
+        BOOST_TEST_MESSAGE("Current test count is: " << nb_simple_checks_executed);
     }
-    // guard should end here
+    // guard should end here, right before comparison, and the log stream should not be the output anymore
     BOOST_TEST( output.match_pattern(true) ); // flushes the stream at the end of the comparison.
 }
 

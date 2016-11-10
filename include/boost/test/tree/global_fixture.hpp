@@ -43,16 +43,31 @@ namespace ut_detail {
 template<typename F>
 struct global_fixture_impl : public global_fixture {
     // Constructor
-    global_fixture_impl() : m_fixture( 0 )    {}
+    global_fixture_impl() : m_fixture( 0 ), m_failed_state( false ), m_start_called( false )
+    {}
 
     // test observer interface
-    virtual void    test_start( counter_t ) { m_fixture = new F; }
-    virtual void    test_finish()           { delete m_fixture; m_fixture = 0; }
-    virtual void    test_aborted()          { /* delete m_fixture; m_fixture = 0; */ }
+    virtual void    test_start( counter_t ) {
+        m_start_called = true;
+        m_fixture = new F;
+    }
+
+    virtual void    test_finish()           {
+        delete m_fixture;
+        m_fixture = 0;
+        m_start_called = false;
+    }
+    virtual void    test_aborted()          {
+        // avoids aliasing among fixtures
+        m_failed_state = m_start_called; /* delete m_fixture; m_fixture = 0; */
+    }
+    virtual bool    is_failed_state() const { return m_failed_state; }
 
 private:
     // Data members
     F*  m_fixture;
+    bool m_failed_state;
+    bool m_start_called;
 };
 
 } // namespace ut_detail

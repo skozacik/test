@@ -1,16 +1,37 @@
+
+
 * message-fixture  *******************************************************************
+[FIXTURE] message in ctor
 Running 1 test case...
+Executing the test case with current execution count 0
+
+Current test count is: 1
+
 
 * exception-fixture  *******************************************************************
-setup error: std::runtime_error: exception in ctor
+[TEST] setup error: std::runtime_error: [FIXTURE] exception in ctor
+Current test count is: 1
+
+
 * assertion-fixture  *******************************************************************
-writing-test-ts/test-macro-global-fixture-failure.cpp(45): fatal error: in "Test setup": failure in ctor
-Running 1 test case...
+writing-test-ts/test-macro-global-fixture-failure.cpp(45): fatal error: in "Test setup": [FIXTURE] failure in ctor
+Test is aborted
+[TEST] setup error: Failure during setup
+Current test count is: 1
+
 
 * message-dtor-fixture  *******************************************************************
 Running 1 test case...
+Executing the test case with current execution count 1
+[FIXTURE] message in dtor
+
+Current test count is: 2
+
 
 * assertion-dtor-fixture  *******************************************************************
 Running 1 test case...
-writing-test-ts/test-macro-global-fixture-failure.cpp(63): fatal error: in "Test setup": failure in dtor
+Executing the test case with current execution count 2
+writing-test-ts/test-macro-global-fixture-failure.cpp(63): fatal error: in "Test setup": [FIXTURE] failure in dtor
+Test is aborted
 
+Current test count is: 3

@@ -71,6 +71,13 @@ BOOST_TEST_DECL void                finalize_setup_phase( test_unit_id tu = INV_
 /// This function returns true when testing is in progress (setup is finished).
 BOOST_TEST_DECL bool                test_in_progress();
 
+/// This function returns true when testing is in teardown.
+///
+/// Calling this function is relevant to distinguish between global setup or teardown, as
+/// the returned value for @ref test_in_progress is @c false.
+BOOST_TEST_DECL bool                test_in_teardown();
+
+
 /// This function shuts down the framework and clears up its mono-state.
 ///
 /// It needs to be at the very end of test module execution

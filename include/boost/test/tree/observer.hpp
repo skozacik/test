@@ -47,11 +47,17 @@ public:
     //!
     virtual void    test_start( counter_t /* number_of_test_cases */ ) {}
 
-
     //! Called after the framework ends executing the test cases
     //!
     //! @note The call is made with a reversed priority order.
     virtual void    test_finish() {}
+
+    //! Indicates a failure in test_start/test_finish
+    //!
+    //! This function is mainly for fixtures that are set up in test_start and tore down in test_finish.
+    //! The fixture will receive a test_aborted signal in case of an failed assertion in the contructor or
+    //! destructor of the fixture.
+    virtual bool    is_failed_state() const { return false; }
 
     //! Called when a critical error is detected
     //!

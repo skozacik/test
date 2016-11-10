@@ -377,8 +377,16 @@ report_assertion( assertion_result const&   ar,
             BOOST_TEST_I_THROW( execution_aborted() );
         }
         else {
-            // in case no test is in progress, we do not throw anything
+            // in case no test is in progress, we do not throw anything during the
+            // teardown
             framework::test_aborted();
+            if( !framework::test_in_teardown() ) {
+                // execution_exception is thrown instead of execution_aborted otherwise it is
+                // not forwarded to the framework.
+                BOOST_TEST_I_THROW( execution_exception(execution_exception::user_error,
+                                                        "Failure during setup",
+                                                        execution_exception::location(file_name, line_num) ) );
+            }
         }
         return false;
     }

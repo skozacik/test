@@ -450,6 +450,7 @@ public:
     , m_next_test_case_id( MIN_TEST_CASE_ID )
     , m_next_test_suite_id( MIN_TEST_SUITE_ID )
     , m_test_in_progress( false )
+    , m_test_teardown( false )
     , m_context_idx( 0 )
     , m_log_sinks( )
     , m_report_sink( std::cerr )
@@ -603,7 +604,7 @@ public:
       }
     };
 
-      // Executed the test tree with the root at specified test unit
+    // Executes the test tree with the root at specified test unit
     execution_result execute_test_tree( test_unit_id tu_id,
                                         unsigned timeout = 0,
                                         random_generator_helper const * const p_random_generator = 0)
@@ -794,6 +795,7 @@ public:
     test_unit_id    m_next_test_suite_id;
 
     bool            m_test_in_progress;
+    bool            m_test_teardown;
 
     observer_store  m_observers;
     context_data    m_context;
@@ -1107,6 +1109,17 @@ test_in_progress()
     return impl::s_frk_state().m_test_in_progress;
 }
 
+// ************************************************************************** //
+// **************               test_in_teardown               ************** //
+// ************************************************************************** //
+
+bool
+test_in_teardown()
+{
+    assert(!impl::s_frk_state().m_test_in_progress);
+    return !impl::s_frk_state().m_test_in_progress && impl::s_frk_state().m_test_teardown;
+}
+
 //____________________________________________________________________________//
 
 // ************************************************************************** //
@@ -1414,43 +1427,60 @@ run( test_unit_id id, bool continue_test )
 
     bool    was_in_progress     = framework::test_in_progress();
     bool    call_start_finish   = !continue_test || !was_in_progress;
-
-    impl::s_frk_state().m_test_in_progress = !call_start_finish;
+    bool    init_ok             = true;
+    const_string setup_error;
 
     if( call_start_finish ) {
+        // indicates the framework that no test is in progress now if observers need to be notified
+        impl::s_frk_state().m_test_in_progress = false;
+        impl::s_frk_state().m_test_teardown = false;
         BOOST_TEST_FOREACH( test_observer*, to, impl::s_frk_state().m_observers ) {
             BOOST_TEST_I_TRY {
                 impl::s_frk_state().m_aux_em.vexecute( boost::bind( &test_observer::test_start, to, tcc.p_count ) );
             }
             BOOST_TEST_I_CATCH( execution_exception, ex ) {
-                BOOST_TEST_SETUP_ASSERT( false, ex.what() );
+                init_ok = false;
+                setup_error = ex.what();
+                break;
+                // BOOST_TEST_SETUP_ASSERT( false, ex.what() );
             }
         }
     }
 
-    impl::s_frk_state().m_test_in_progress = true;
+    // we do not execute any test if the setup was incorrect
+    if( init_ok ) {
 
-    unsigned seed = runtime_config::get<unsigned>( runtime_config::btrt_random_seed );
-    switch( seed ) {
-    case 0:
-        break;
-    case 1:
-        seed = static_cast<unsigned>( std::rand() ^ std::time( 0 ) ); // better init using std::rand() ^ ...
-    default:
-        BOOST_TEST_FRAMEWORK_MESSAGE( "Test cases order is shuffled using seed: " << seed );
-        std::srand( seed );
+        impl::s_frk_state().m_test_in_progress = true;
+
+        unsigned seed = runtime_config::get<unsigned>( runtime_config::btrt_random_seed );
+        switch( seed ) {
+        case 0:
+            break;
+        case 1:
+            seed = static_cast<unsigned>( std::rand() ^ std::time( 0 ) ); // better init using std::rand() ^ ...
+        default:
+            BOOST_TEST_FRAMEWORK_MESSAGE( "Test cases order is shuffled using seed: " << seed );
+            std::srand( seed );
+        }
+
+        impl::s_frk_state().execute_test_tree( id );
+
     }
 
-    impl::s_frk_state().execute_test_tree( id );
-
-    impl::s_frk_state().m_test_in_progress = !call_start_finish;
-
     if( call_start_finish ) {
+        // indicates the framework that no test is in progress anymore if observers need to be notified
+        // and this is a teardown, so assertions should not raise any exception otherwise an exception
+        // might be raised in a dtor of a global fixture
+        impl::s_frk_state().m_test_in_progress = false;
+        impl::s_frk_state().m_test_teardown = true;
         BOOST_TEST_REVERSE_FOREACH( test_observer*, to, impl::s_frk_state().m_observers )
             to->test_finish();
     }
 
     impl::s_frk_state().m_test_in_progress = was_in_progress;
+
+    // propagates the init error if any
+    BOOST_TEST_SETUP_ASSERT( init_ok, setup_error );
 }
 
 //____________________________________________________________________________//
