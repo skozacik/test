@@ -1439,9 +1439,12 @@ run( test_unit_id id, bool continue_test )
                 impl::s_frk_state().m_aux_em.vexecute( boost::bind( &test_observer::test_start, to, tcc.p_count ) );
             }
             BOOST_TEST_I_CATCH( execution_exception, ex ) {
-                init_ok = false;
-                setup_error = ex.what();
-                break;
+                if( init_ok ) {
+                    // log only the first error
+                    init_ok = false;
+                    setup_error = ex.what();
+                }
+                // break; // we should continue otherwise loggers may have improper structure (XML start missing for instance)
                 // BOOST_TEST_SETUP_ASSERT( false, ex.what() );
             }
         }

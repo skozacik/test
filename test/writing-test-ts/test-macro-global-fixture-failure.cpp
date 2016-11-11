@@ -28,8 +28,10 @@ struct GlobalFixture {
         be_disabled,
         be_throw,
         be_message,
+        be_assert_non_fatal,
         be_assert,
         be_message_dtor,
+        be_assert_non_fatal_dtor,
         be_assert_dtor
     };
 
@@ -40,6 +42,10 @@ struct GlobalFixture {
 
         case be_throw:
             throw std::runtime_error("[FIXTURE] exception in ctor");
+
+        case be_assert_non_fatal:
+            BOOST_TEST( false );
+            break;
 
         case be_assert:
             BOOST_FAIL("[FIXTURE] failure in ctor");
@@ -54,11 +60,16 @@ struct GlobalFixture {
             break;
         }
     }
+
     ~GlobalFixture() {
         if(behaviour != be_disabled)
             std::cout << "global fixture-dtor" << std::endl;
 
         switch(behaviour) {
+        case be_assert_non_fatal_dtor:
+            BOOST_TEST( false );
+            break;
+
         case be_assert_dtor:
             BOOST_FAIL("[FIXTURE] failure in dtor"); // this crashes because it raises an uncaught exception in the dtor
             break;
@@ -87,10 +98,10 @@ void simple_check()
 }
 
 struct guard_reset_tu_id {
-    guard_reset_tu_id(output_test_stream &output_stream, output_format format = OF_CLF) {
+    guard_reset_tu_id(output_test_stream &output_stream, output_format format ) {
         m_tu_id = framework::impl::s_frk_state().m_curr_test_case;
         framework::impl::s_frk_state().m_curr_test_case = INV_TEST_UNIT_ID;
-        unit_test_log.set_format( OF_CLF );
+        unit_test_log.set_format( format );
         unit_test_log.set_threshold_level( log_messages );
         unit_test_log.set_stream( output_stream );
     }
@@ -104,10 +115,10 @@ private:
     boost::unit_test::test_unit_id m_tu_id;
 };
 
-void check( output_test_stream& output, std::string global_fixture_behaviour, test_suite* ts)
+void check( output_test_stream& output, output_format format, std::string global_fixture_behaviour, test_suite* ts)
 {
     {
-        guard_reset_tu_id tu_guard(output);
+        guard_reset_tu_id tu_guard(output, format);
         ts->p_default_status.value = test_unit::RS_ENABLED;
 
         output << "\n\n* " << global_fixture_behaviour << "-fixture  *******************************************************************";
@@ -232,19 +243,34 @@ BOOST_AUTO_TEST_CASE( fixture_check )
     test_suite* ts_0 = BOOST_TEST_SUITE( "fake root" );
     ts_0->add( BOOST_TEST_CASE( simple_check ) );
 
-    GlobalFixture::behaviour = GlobalFixture::be_message;
-    check( test_output, "message", ts_0 );
+    output_format formats_to_check[] = {OF_CLF, OF_XML, OF_JUNIT};
 
-    GlobalFixture::behaviour = GlobalFixture::be_throw;
-    check( test_output, "exception", ts_0 );
+    for(int current_format_index = 0;
+        current_format_index < sizeof(formats_to_check)/sizeof(formats_to_check[0]);
+        current_format_index ++ )
+    {
+        nb_simple_checks_executed = 0;
+        output_format current_format = formats_to_check[current_format_index];
+        GlobalFixture::behaviour = GlobalFixture::be_message;
+        check( test_output, current_format, "message", ts_0 );
 
-    GlobalFixture::behaviour = GlobalFixture::be_assert;
-    check( test_output, "assertion", ts_0 );
+        GlobalFixture::behaviour = GlobalFixture::be_throw;
+        check( test_output, current_format, "exception", ts_0 );
 
-    GlobalFixture::behaviour = GlobalFixture::be_message_dtor;
-    check( test_output, "message-dtor", ts_0 );
+        GlobalFixture::behaviour = GlobalFixture::be_assert;
+        check( test_output, current_format, "assertion", ts_0 );
 
-    GlobalFixture::behaviour = GlobalFixture::be_assert_dtor;
-    check( test_output, "assertion-dtor", ts_0 );
+        GlobalFixture::behaviour = GlobalFixture::be_message_dtor;
+        check( test_output, current_format, "message-dtor", ts_0 );
+
+        GlobalFixture::behaviour = GlobalFixture::be_assert_dtor;
+        check( test_output, current_format, "assertion-dtor", ts_0 );
+
+        GlobalFixture::behaviour = GlobalFixture::be_assert_non_fatal_dtor;
+        check( test_output, current_format, "assertion-non-fatal-dtor", ts_0 );
+
+        GlobalFixture::behaviour = GlobalFixture::be_assert_non_fatal;
+        check( test_output, current_format, "assertion-non-fatal", ts_0 );
+    }
 }
 
