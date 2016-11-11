@@ -14,7 +14,7 @@ Current test count is: 1
 
 
 * assertion-fixture  *******************************************************************
-writing-test-ts/test-macro-global-fixture-failure.cpp(45): fatal error: in "Test setup": [FIXTURE] failure in ctor
+xxx/test-macro-global-fixture-failure.cpp:45: fatal error: in "Test setup": [FIXTURE] failure in ctor
 Test is aborted
 [TEST] setup error: Failure during setup
 Current test count is: 1
@@ -31,7 +31,7 @@ Current test count is: 2
 * assertion-dtor-fixture  *******************************************************************
 Running 1 test case...
 Executing the test case with current execution count 2
-writing-test-ts/test-macro-global-fixture-failure.cpp(63): fatal error: in "Test setup": [FIXTURE] failure in dtor
+xxx/test-macro-global-fixture-failure.cpp:63: fatal error: in "Test setup": [FIXTURE] failure in dtor
 Test is aborted
 
 Current test count is: 3
