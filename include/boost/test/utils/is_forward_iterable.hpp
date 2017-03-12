@@ -36,6 +36,7 @@
 
 // Boost
 #include <boost/utility/declval.hpp>
+#include <boost/range.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/type_traits/remove_cv.hpp>
@@ -110,7 +111,7 @@ template <class T>
 struct has_member_begin {
 private:
     struct nil_t {};
-    template<typename U>  static auto  test( U* ) -> decltype(boost::declval<U>().begin());
+    template<typename U>  static auto  test( U* ) -> decltype(boost::begin(boost::declval<U>()));
     template<typename>    static nil_t test( ... );
 public:
     static bool const value = !std::is_same< decltype(test<T>( nullptr )), nil_t>::value;
@@ -122,7 +123,7 @@ template <class T>
 struct has_member_end {
 private:
     struct nil_t {};
-    template<typename U>  static auto  test( U* ) -> decltype(boost::declval<U>().end());
+    template<typename U>  static auto  test( U* ) -> decltype(boost::end(boost::declval<U>()));
     template<typename>    static nil_t test( ... );
 public:
     static bool const value = !std::is_same< decltype(test<T>( nullptr )), nil_t>::value;
@@ -142,7 +143,7 @@ struct is_forward_iterable_impl<
     typename std::enable_if<
     is_present<typename T::const_iterator>::value &&
     is_present<typename T::value_type>::value &&
-    has_member_size<T>::value &&
+    //has_member_size<T>::value &&
     has_member_begin<T>::value &&
     has_member_end<T>::value &&
     !is_cstring<T>::value
